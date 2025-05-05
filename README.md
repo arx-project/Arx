@@ -1,20 +1,20 @@
-**BSD-Native Graphics System: Arcan-Inspired Architecture Plan (Arx)**
+**BSD-Native Graphics System: Arx Architecture and Implementation Plan**
 
 **Overview:**
 When a proof of concept begins, it represents more than a simple experiment, it is the seed of a vision. **Arx** emerges from the desire to move beyond loosely assembled components toward a truly monolithic BSD-native desktop environment. At this stage, the focus is on mapping the terrain, identifying the disciplines required, outlining the foundational components, and understanding how they must interlock to form a seamless and integrated whole. It is a deliberate shift from coexistence to cohesion, from compatibility to purpose-built harmony.
 
-**Arx** is a secure, fully integrated desktop environment and graphics system for BSD systems. Written in **Odin** and scripted in **Wren**, it is designed to replace X11 and Wayland with a cleaner, simpler, and more native solution.
+**Arx** is a secure, fully integrated desktop environment and graphics system for BSD systems. Written in **Odin** and scripted in **Wren**, it is designed to replace legacy display systems like X11 and avoid Linux-origin technologies such as Wayland, in favor of a native protocol inspired by Arcan.
 
 ---
 
 **Core Principles:**
 
-* Fully BSD-native, no Linux-specific APIs or daemons
-* Security-first, capsicum, jails, sandboxed clients
-* Monolithic userland, audio, input, display, and protocol unified
-* Minimal dependencies, no dbus, PAM, systemd, or pulseaudio
-* Network-aware, built-in remote capability without legacy X11 baggage
-* Modern implementation, written in Odin with Wren as the embedded scripting engine
+* Entirely BSD-native, free from Linux-specific APIs and daemons
+* Secure by design: capsicum, jails, sandboxed graphical clients
+* Unified architecture integrating graphics, input, audio, and session layers
+* Minimalist dependencies: excludes dbus, PAM, systemd, pulseaudio
+* Supports remote operation with a built-in display protocol (non-X11, non-VNC)
+* Fully implemented in Odin, with Wren for scripting and customization
 
 ---
 
@@ -22,129 +22,125 @@ When a proof of concept begins, it represents more than a simple experiment, it 
 
 1. **Kernel Interface Layer**
 
-   * Interface to vt, drm, or future BSD-native KMS
-   * Input from devd (no udev dependency)
-   * Fallback to framebuffer on unsupported GPUs
+   * Interfaces with vt, DRM, or BSD-native kernel graphics drivers
+   * Input sourced through devd events (not udev)
+   * Framebuffer fallback for older systems
 
 2. **Display Server Core**
 
-   * Compositor, renderer, and scene graph manager
-   * Sandbox-per-client (jail or chroot)
-   * Rendering backends: software, OpenGL, Vulkan (via BSD-compatible Mesa)
+   * Compositor and scene manager in Odin
+   * Security isolation for each client
+   * Rendering via OpenGL, Pixman, or internal rasterizer
 
 3. **Input System**
 
-   * Devd listener and event parser
-   * Abstraction over keyboard, mouse, touch, gamepad
-   * Secure per-client routing and filtering
+   * Native handling of keyboard, mouse, touch, gamepad
+   * Event parsing from devd
+   * Per-client routing of input events
 
 4. **Window Protocol**
 
-   * Message-passing IPC or file descriptor-based protocol
-   * Clean namespace separation for each client
-   * Lightweight protocol designed for simplicity and auditability
+   * Custom BSD-native protocol modeled after Arcan or 9P concepts
+   * Uses direct IPC (sockets or memory channels)
+   * Lightweight, auditable, and deterministic
 
-5. **Audio System (Optional but Integrated)**
+5. **Audio System (Optional)**
 
-   * Minimal, statically-linked audio stack
-   * Support for PCM, mixing, and per-client isolation
-   * ALSA-like interface, BSD-native only
+   * Minimal statically linked backend
+   * Native interface for PCM and mixing
+   * Optional PipeWire support with modular integration
 
 6. **Session and Resource Manager**
 
-   * Compositor scripting layer implemented in Wren
-   * Resource quotas and watchdogs for clients
-   * Snapshot/rollback integration with ZFS (optional)
+   * Client lifecycle management and system state
+   * Wren-powered scripting layer for behavior control
+   * ZFS snapshot support for session rollback
 
 7. **Client Toolkit SDK**
 
-   * Native drawing API (2D and 3D)
-   * BSD-specific bindings (for Odin, C3, C)
-   * Backends for SDL, Nuklear, and minimalist GUI widgets
+   * Lightweight UI toolkit written in Odin
+   * Native widgets for internal tools
+   * Optional bindings to SDL or Nuklear for developer use
 
 8. **Legacy Compatibility (Optional)**
 
-   * X11/Wayland bridge layer (optional, not default)
-   * Run legacy apps in jail with shimmed protocol handler
+   * X11/Wayland support is optional via isolated compatibility layer
+   * Designed for containment in jails, not core integration
 
 9. **Remote Access Layer**
 
-   * Secure, efficient streaming of display state
-   * Protocol-level rather than pixel-level (like VNC)
-   * SSH or capsicum-secured transport
+   * Direct protocol-level display streaming
+   * Remote login and interaction over SSH or secure tunnel
 
 ---
 
 **Security Design:**
 
-* Per-client jails or chroots
-* Capsicum enforcement on client-server boundaries
-* No global clipboard or shared memory unless explicitly permitted
-* Event-driven, async messaging to avoid blocking paths
+* All graphical clients run with restricted privileges
+* Sandboxing through jails and capsicum
+* No global clipboard or shared surfaces unless explicitly configured
+* Event-driven, asynchronous IPC model
 
 ---
 
 **Deployment Strategy:**
 
-### Stage 1: Evaluation and Toolchain Preparation
+**Stage 1: Foundation Development**
 
-* Audit Arcan for BSD readiness and Lua dependency boundaries
-* Replace Lua scripting engine with embedded Wren interpreter
-* Build Arcan and Durden on BSD, create ports or static builds
+* Define core protocol and sandbox rules
+* Create base compositor, renderer, and input stack
+* Implement IPC and Wren scripting bridge
 
-### Stage 2: Arcan-Based Shell Development
+**Stage 2: Shell and UI**
 
-* Fork or reconfigure Durden into a BSD-native desktop shell
-* Replace unnecessary features with BSD-native equivalents
-* Integrate ZFS snapshotting, `bectl`, `devd`, and jails
-* Develop minimal applications (launcher, terminal, settings) using Arcan client protocol
+* Develop internal panel, launcher, and settings UI
+* Integrate configuration manager and theme engine
+* Provide base SDK for native apps
 
-### Stage 3: BSD Desktop Integration
+**Stage 3: System Integration**
 
-* Design installer integration for Arx
-* Define init and session scripts for rc.d or greetd
-* Provide configuration UI for shell, themes, startup apps
-* Package as a complete DE under a BSD-friendly license
+* Session startup via rc.conf or greetd
+* ZFS support and devd integration
+* Logging, crash reporting, and test suite
 
-### Stage 4: SDK and App Ecosystem
+**Stage 4: Application Ecosystem**
 
-* Release SDK for developing Arcan-native apps in Odin
-* Port simple apps (file manager, image viewer, text editor)
-* Provide SDL/Nuklear bindings to facilitate GUI app development
+* File manager, terminal, and editor tools
+* Clipboard, screenshot, and power menu support
+* Developer documentation and SDK release
 
-### Stage 5: Optional Compatibility and Remote Layer
+**Stage 5: Optional Extensions**
 
-* Develop optional X11/Wayland wrapper using jails
-* Add secure network session protocol with encrypted transport
+* Compatibility sandbox for legacy apps
+* Remote desktop support
+* Accessibility and internationalization
 
 ---
 
 **Advantages Over KDE, GNOME, and Wayland:**
 
-* Native to BSD from kernel to UI
-* No reliance on Linux IPC daemons or service stacks
-* Built as a single cohesive platform rather than a layered toolkit
-* Secure by design and simple to audit
-* Includes modern remote access and session control by default
+* BSD-native design from kernel to UI
+* Free of layered IPC daemons and Linux system services
+* Secure by default and coherent in architecture
+* Predictable behavior, low resource footprint, and fast startup
+* Offers first-class support for jail and ZFS integration
 
 ---
 
 **Project Status:**
 
-* Core architecture is defined
-* Component specifications are underway
-* Arcan evaluation and Wren substitution planned
-* First prototypes focused on compositor, shell, and launcher
+* Design and architecture planning complete
+* Compositor and IPC prototypes in progress
+* Input and session lifecycle components under definition
 
 ---
 
 **Future Goals:**
 
-* Publish Arx as a FreeBSD Ports collection
-* Develop Odin-native UI toolkit
-* Expand BSD-native application framework
-* Add session utilities, clipboard support, accessibility tools
-* Integrate jails-aware sandboxing and optional compatibility bridges
+* Provide full desktop stack in BSD ports tree
+* Deliver SDK and documentation for Odin-native apps
+* Build out localization, onboarding, and accessibility systems
+* Establish remote control and display features for network use
 
 ---
 
@@ -154,6 +150,6 @@ When a proof of concept begins, it represents more than a simple experiment, it 
 ---
 
 **Community and Philosophy:**
-Arx is a community-led project grounded in BSD values: simplicity, transparency, auditability, and freedom. It is not a derivative of Linux, nor an adaptation of existing desktop conventions. It is a declaration that BSD systems deserve an environment as principled and coherent as their kernel.
+Arx is a declaration that BSD users deserve a desktop environment built to match the principles of their operating system: simplicity, control, clarity, and technical integrity. It is not adapted from Linux, nor based on external paradigms. Arx is an independent, auditable, and forward-looking environment where BSD is not a platform target, but the foundation.
 
-Arx is built not to mimic, but to lead. If you believe BSD should stand on its own terms, we invite you to help shape what comes next.
+If you believe in a native BSD future, Arx welcomes your contribution.
