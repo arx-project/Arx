@@ -1,168 +1,185 @@
-# Arx Desktop Environment: Component Planning Document
+**BSD-Native Graphics System: Arcan-Inspired Architecture Plan (Arx)**
 
-## Purpose
+**Overview:**
+When a proof of concept begins, it represents more than a simple experiment, it is the seed of a vision. **Arx** emerges from the desire to move beyond loosely assembled components toward a truly monolithic BSD-native desktop environment. At this stage, the focus is on mapping the terrain, identifying the disciplines required, outlining the foundational components, and understanding how they must interlock to form a seamless and integrated whole. It is a deliberate shift from coexistence to cohesion, from compatibility to purpose-built harmony.
 
-Define and document all core and supporting components required for building Arx, a monolithic BSD native desktop environment written in Odin, using Wayland and BSD base system services.
-
----
-
-## Core System Components
-
-### 1. Compositor
-
-* Stacking window manager using wlroots (FFI bindings)
-* Handles: surface lifecycle, input, focus, output layout
-
-### 2. Renderer
-
-* Draws window frames, shadows, backgrounds, and decorations
-* Backend: OpenGL, Pixman, or internal raster engine
-* Supports: anti-aliased fonts, theme-aware elements
-
-### 3. Session Manager
-
-* Integrates with rc.conf or greetd
-* Launches compositor, panel, and applications
-* Handles logout, shutdown, reboot
-
-### 4. IPC Layer
-
-* BSD native Unix sockets for internal communication
-* Event subscription model: UI components can respond to signals
-
-### 5. Configuration System
-
-* Loads and saves config in TOML or JSON
-* Default path: \~/.config/arx/config.toml
-* Supports live reload or restart reload
+**Arx** is a secure, fully integrated desktop environment and graphics system for BSD systems. Written in **Odin** and scripted in **Wren**, it is designed to replace X11 and Wayland with a cleaner, simpler, and truly native BSD solution.
 
 ---
 
-## Graphical Components
+**Purpose:**
+Define and document all core and supporting components required for building Arx, a monolithic BSD-native desktop environment written in Odin, using BSD system services and free from Linux-specific display architectures.
 
-### 6. Panel / Bar
+---
 
-* Layer shell protocol client
-* Hosts: clock, workspaces, launcher, tray
+**Core Principles:**
 
-### 7. Launcher
+* Fully BSD-native, no Linux-specific APIs or daemons
+* Security-first, capsicum, jails, sandboxed clients
+* Monolithic userland, audio, input, display, and protocol unified
+* Minimal dependencies, no dbus, PAM, systemd, or pulseaudio
+* Network-aware, built-in remote capability without legacy X11 or Wayland
+* Modern implementation, written in Odin with Wren as the embedded scripting engine
 
-* Application search and execution (like dmenu or rofi)
-* Reads from .desktop files or predefined list
+---
 
-### 8. Settings Manager
+**Core System Components:**
 
-* GUI to configure themes, resolution, keybindings, sessions
+1. **Compositor**
 
-### 9. Notification Daemon
+   * Stacking window manager written natively in Odin
+   * Handles surface lifecycle, input, focus, and output layout
+   * Implements its own protocol modeled after Arcan or Plan 9 concepts
 
-* Displays Wayland native notifications
-* Follows desktop notifications spec (without D-Bus)
+2. **Renderer**
 
-### 10. UI Toolkit
+   * Draws window frames, shadows, backgrounds, and decorations
+   * Backend: OpenGL, Pixman, or internal raster engine
+   * Supports anti-aliased fonts, theme-aware elements
+
+3. **Session Manager**
+
+   * Integrates with rc.conf or greetd
+   * Launches compositor, panel, and applications
+   * Handles logout, shutdown, reboot
+
+4. **IPC Layer**
+
+   * BSD-native Unix sockets or capability-secured channels
+   * Event subscription model for component interaction
+
+5. **Configuration System**
+
+   * Loads and saves config in TOML or JSON
+   * Default path: \~/.config/arx/config.toml
+   * Supports live reload or restart reload
+
+---
+
+**Graphical Components:**
+
+6. **Panel / Bar**
+
+   * Top-level UI bar for system information and control
+   * Hosts clock, workspaces, launcher, tray
+
+7. **Launcher**
+
+   * Application search and execution
+   * Reads from native manifest files or predefined list
+
+8. **Settings Manager**
+
+   * GUI to configure themes, resolution, keybindings, sessions
+
+9. **Notification Daemon**
+
+   * Displays notifications using internal protocol
+   * Avoids D-Bus and external libraries
+
+10. **UI Toolkit**
 
 * Minimal widget library written in Odin
-* Widgets: buttons, sliders, text fields, lists
-* Used by settings manager, launcher, and other internal tools
+* Provides buttons, sliders, text fields, lists
+* Used by internal tools and optionally available to third-party apps
 
 ---
 
-## Optional or Extensible Components
+**Optional or Extensible Components:**
 
-### 11. File Manager
+11. **File Manager**
 
-* Optional integration: Thunar, PCManFM Qt, or native Odin based
+* Optional: Odin-native implementation
 
-### 12. Terminal Emulator
+12. **Terminal Emulator**
 
-* Odin native terminal or integration with foot
+* Odin-native terminal with minimal dependencies
 
-### 13. Clipboard Manager
+13. **Clipboard Manager**
 
-* Wayland compatible copy and paste
+* Native copy and paste
 * Secure memory handling
 
-### 14. Screenshot Tool
+14. **Screenshot Tool**
 
-* Select region or window
+* Region or window capture
 * Saves to configured location
 
-### 15. Power Menu
+15. **Power Menu**
 
 * Suspend, reboot, shutdown, logout
-* Uses rc commands, no polkit or elogind
+* Uses rc commands
 
-### 16. Accessibility (Future)
+16. **Accessibility (Future)**
 
-* Keyboard navigation and basic screen reader hooks
+* Keyboard navigation, screen reader hooks
 
-### 17. Application Framework (Future)
+17. **Application Framework (Future)**
 
-* APIs for native Odin applications
-* Window lifecycle, input event dispatch, theme integration
-* Consider app sandboxing and permissions model
+* APIs for Odin apps: lifecycle, input, themes
+* App sandboxing and permissions
 
-### 18. User Onboarding and First Login
+18. **User Onboarding and First Login**
 
-* Default configuration generator on first launch
-* Minimal setup wizard for resolution, theme, keyboard layout
+* Default configuration generator
+* Minimal setup wizard
 
-### 19. Localization and Internationalization
+19. **Localization and Internationalization**
 
-* Unicode support, including RTL layout support
-* Language selector in settings manager
-* i18n strings support in UI toolkit
+* Unicode and RTL support
+* Language selector
+* i18n support in UI toolkit
 
-### 20. Security and Privilege Separation
+20. **Security and Privilege Separation**
 
-* Process isolation where applicable
-* Drop privileges for UI daemons
-* Secure defaults for clipboard, notifications, and IPC
+* Per-component isolation
+* Dropped privileges for daemons
+* Secure defaults
 
 ---
 
-## Backend Infrastructure
+**Backend Infrastructure:**
 
-### 21. Logging
+21. **Logging**
 
-* Per component logging to \~/.cache/arx/\*.log
+* Per-component logs in \~/.cache/arx/\*.log
 * Configurable verbosity
 
-### 22. Theme and Font Engine
+22. **Theme and Font Engine**
 
-* Centralized theme system loaded from config
-* Renders using internal renderer
+* Central theme system
+* Rendered via internal renderer
 
-### 23. Input Device Manager
+23. **Input Device Manager**
 
 * Mouse, touchpad, keyboard, gamepad
-* Uses libinput (via wlroots)
+* Uses devd and custom input handling, no libinput
 
-### 24. Audio Integration
+24. **Audio Integration**
 
-* PipeWire and WirePlumber
-* Optional GUI mixer
+* Optional minimal audio layer
+* PipeWire support can be considered modular
 
 ---
 
-## Developer and Debugging Tools
+**Developer and Debugging Tools:**
 
-### 25. Dev Console
+25. **Dev Console**
 
 * Interactive log viewer and diagnostics
 
-### 26. Crash Handling
+26. **Crash Handling**
 
 * Logs backtraces and errors
-* Optional integration with external crash reporters
+* Optional crash report integration
 
-### 27. Testing Framework
+27. **Testing Framework**
 
-* Unit and integration tests for components
+* Unit and integration tests
 
 ---
 
-## Deliverables
+**Deliverables:**
 
 * Initial proof of concept: compositor, panel, launcher
 * Phase 2: notifications, settings, terminal
@@ -171,9 +188,21 @@ Define and document all core and supporting components required for building Arx
 
 ---
 
-## Next Steps
+**Next Steps:**
 
 * Define interface contracts between components
-* Begin Odin bindings for wlroots and libinput
+* Begin Odin implementation of graphics protocol and input handling
 * Draft config schema and user onboarding design
 * Set up build system and logging infrastructure
+
+---
+
+**License:**
+**BSD 2-Clause**
+
+---
+
+**Community and Philosophy:**
+Arx is a community-led project grounded in BSD values: simplicity, transparency, auditability, and freedom. It is not a derivative of Linux, nor an adaptation of existing desktop conventions. It is a declaration that BSD systems deserve an environment as principled and coherent as their kernel.
+
+Arx is built not to mimic, but to lead. If you believe BSD should stand on its own terms, we invite you to help shape what comes next.
